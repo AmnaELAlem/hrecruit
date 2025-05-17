@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: hrecruit
+    env: java
+    buildCommand: ./mvnw clean install
+    startCommand: java -jar target/hrecruit-0.0.1-SNAPSHOT.jar
+    plan: free
+    branch: main
+    rootDir: HRecruit/hrecruit

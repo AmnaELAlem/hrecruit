@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recruiter Dashboard</title>
+    <link rel="stylesheet" href="/css/index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <img src="/images/logoB.png" alt="Logo" class="logo-img">
+            </div>
+            <ul class="menu">
+                <li class="active"><a href="/dashboard"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="/interviews"><i class="fas fa-calendar-check"></i> Interviews</a></li>
+                <li><a href="/status"><i class="fas fa-tasks"></i> Status</a></li>
+                <li><a href="/reports"><i class="fas fa-file-alt"></i> Report</a></li>
+                <li><a href="/calendar"><i class="fas fa-calendar-alt"></i> Calendar</a></li>
+                <li><a href="/scoring"><i class="fas fa-star"></i> Scoring</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="search-box">
+                    <input type="text" placeholder="Search here...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="user-profile">
+                    <img src="/images/profile-user.png" alt="User" id="profile-icon">
+                    <div class="dropdown-menu" id="dropdown-menu">
+                        <a href="#">My Profile</a>
+                        <a href="/logout">Logout</a>
+                    </div>
+                </div>
+            </header>
+
+ <!-- Dashboard Overview -->
+<section class="dashboard-overview">
+    <h2>Dashboard</h2>
+    <div class="cards">
+        <!-- Upcoming Interviews Card -->
+        <div class="card blue">
+            <i class="fas fa-calendar-check"></i>
+            <div>
+                <p>Upcoming Interviews</p>
+                <h3 th:text="${upcomingCount}">0</h3>
+            </div>
+        </div>
+
+        <!-- Completed Interviews Card -->
+        <div class="card yellow">
+            <i class="fas fa-tasks"></i>
+            <div>
+                <p>Completed Interviews</p>
+                <h3 th:text="${completedCount}">0</h3>
+            </div>
+        </div>
+
+        <!-- Pending Interviews Card -->
+        <div class="card purple">
+            <i class="fas fa-clock"></i>
+            <div>
+                <p>Pending Interviews</p>
+                <h3>0</h3>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+            <!-- Interview Status -->
+            <section class="status-section">
+                <h2>Interview Status</h2>
+                <button id="create-interview-btn" class="big-green-btn" onclick="openPanel()">+ Create Interview</button>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Position</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Company</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="interview : ${interviews}">
+                            <td th:text="${interview.user.userId}">User ID</td>
+                            <td th:text="${interview.position}">Position</td>
+                            <td th:text="${interview.date}">Date</td>
+                            <td th:text="${interview.time}">Time</td>
+                            <td th:text="${interview.company}">Company</td>
+                            <td>
+                                <span th:if="${interview.status == 'Scheduled'}">
+                                    <button 
+                                        class="pending-btn" 
+                                        th:onclick="'updateStatus(' + ${interview.id} + ', \'Pending\')'">
+                                        Start Call
+                                    </button>
+                                </span>
+                                <span th:if="${interview.status == 'Pending'}">
+                                    <a 
+                                        class="pending-btn" 
+                                        href="javascript:void(0);" 
+                                        th:onclick="|joinCallAndUpdateStatus(${interview.id}, '${interview.user.userId}')|">
+                                        Join Call
+                                    </a>
+                                </span>                                                                
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+   <!-- Side Panel (Hidden Initially) -->
+   <div id="sidePanel" class="side-panel">
+        <div class="side-panel-header">
+            <h3 id="panel-title">Create Interview</h3>
+            <span class="close-btn" onclick="closePanel()">&times;</span>
+        </div>
+        <div class="side-panel-content">
+            <form th:action="@{/api/interviews/create}" method="post">
+                <label for="userId">User ID:</label>
+                <input type="number" id="userId" name="userId" required>
+                
+                <label for="position">Position:</label>
+                <input type="text" id="position" name="position" required>
+                
+                <label for="date">Date:</label>
+                <input type="date" id="date" name="date" required>
+                
+                <label for="time">Time:</label>
+                <input type="time" id="time" name="time" required>
+                
+                <label for="company">Company:</label>
+                <input type="text" id="company" name="company" required>
+                
+                <button type="submit" class="submit-btn">Create Interview</button>
+            </form>
+        </div>
+    </div>
+    <script src="/js/dark-mode.js"></script>
+    <script src="/js/profile-dropdown.js"></script>
+    <script>
+
+// Open the Side Panel
+function openPanel() {
+    const sidePanel = document.getElementById('sidePanel');
+    sidePanel.style.width = '300px'; // Expand to 300px when opened
+    sidePanel.classList.add('open');
+}
+
+// Close the Side Panel
+function closePanel() {
+    const sidePanel = document.getElementById('sidePanel');
+    sidePanel.style.width = '0'; // Reset width to 0 to hide
+    sidePanel.classList.remove('open'); // Remove the 'open' class
+}
+
+// Update Status of Interview
+function updateStatus(interviewId, newStatus) {
+    fetch('/api/interviews/update-status', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            interviewId: interviewId,
+            status: newStatus,
+        }),
+    })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Failed to update status');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+}
+
+async function joinCallAndUpdateStatus(interviewId, userId) {
+    try {
+        // Update the interview status to "Completed"
+        const response = await fetch(`/api/interviews/update-status`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                interviewId: interviewId,
+                status: "Completed",
+            }),
+        });
+
+        if (response.ok) {
+            // Redirect to the call room after successful status update
+            window.location.href = `/call/${userId}?interviewId=${interviewId}`;
+        } else {
+            alert("Failed to update interview status.");
+        }
+    } catch (error) {
+        console.error("Error updating status:", error);
+        alert("An error occurred while updating the status.");
+    }
+}
+
+
+    </script>
+    <script src="/js/sidePanel.js"></script>
+</body>
+</html>

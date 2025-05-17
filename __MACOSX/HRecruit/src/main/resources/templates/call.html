@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Video Call</title>
+</head>
+<body>
+    <div id="call-container">
+        <iframe id="daily-call-frame" allow="camera; microphone; fullscreen" style="width: 100%; height: 100vh;"></iframe>
+    </div>
+
+    <script>
+        async function joinCall(roomName) {
+            try {
+                // Fetch room URL from the backend
+                const response = await fetch(`/api/video/create-room?roomName=${roomName}`, {
+                    method: "POST",
+                });
+
+                const data = await response.json();
+
+                if (data.room_url) {
+                    const iframe = document.getElementById("daily-call-frame");
+                    iframe.src = data.room_url;
+                } else {
+                    throw new Error("Room URL not found");
+                }
+            } catch (error) {
+                console.error("Error joining call:", error);
+                alert("Unable to join the call. Please try again.");
+            }
+        }
+
+        // Replace "room-name" with your dynamic room logic
+        const roomName = "interviewer-candidate-room";
+        joinCall(roomName);
+    </script>
+</body>
+</html>

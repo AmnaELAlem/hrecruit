@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candidate Dashboard</title>
+    <link rel="stylesheet" href="/css/index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <img src="/images/logoB.png" alt="Logo" class="logo-img">
+            </div>
+            <ul class="menu">
+                <li class="active"><a href="/dashboard"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="#"><i class="fas fa-calendar-check"></i> Interviews</a></li>
+                <li><a href="#"><i class="fas fa-tasks"></i> Status</a></li>
+                <li><a href="/myScore"><i class="fas fa-chart-line"></i> My Scores</a></li>
+                <li><a href="#"><i class="fas fa-calendar-alt"></i> Calendar</a></li>
+                <li><a href="#"><i class="fas fa-bell"></i> Notifications</a></li>
+            </ul>            
+            
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="search-box">
+                    <input type="text" placeholder="Search here...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="user-profile">
+                    <img src="/images/profile-user.png" alt="User" id="profile-icon">
+                    <div class="dropdown-menu" id="dropdown-menu">
+                        <a href="#">My Profile</a>
+                        <a href="/logout">Logout</a>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Overview -->
+            <section class="dashboard-overview">
+                <h2>Dashboard</h2>
+                <div class="cards">
+                    <div class="card blue">
+                        <i class="fas fa-calendar-check"></i>
+                        <div>
+                            <p>Upcoming Interviews</p>
+                            <h3 id="upcoming-interviews-count">0</h3>
+                        </div>
+                    </div>
+                    <div class="card yellow">
+                        <i class="fas fa-tasks"></i>
+                        <div>
+                            <p>Completed Interviews</p>
+                            <h3 id="completed-interviews-count">0</h3>
+                        </div>
+                    </div>
+                    <div class="card purple">
+                        <i class="fas fa-chart-line"></i>
+                        <div>
+                            <p>My Scores</p>
+                            <h3>87%</h3>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Interview Status -->
+            <section class="status-section">
+                <h2>Interview Status</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Company</th>
+                            <th>Position</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="interview-table-body">
+                        <tr th:each="interview : ${interviews}">
+                            <td th:text="${interview.company}">Company</td>
+                            <td th:text="${interview.position}">Position</td>
+                            <td th:text="${interview.date}">Date</td>
+                            <td th:text="${interview.time}">Time</td>
+                            <td>
+                                <span th:if="${interview.status.toLowerCase() != 'pending'}"
+                                      th:text="${interview.status}">Status</span>
+                                      <button 
+                                      th:if="${interview.status.toLowerCase() == 'pending'}"
+                                      th:attr="data-committee=${interview.committee}"
+                                      onclick="joinCall(this)"
+                                      class="pending-btn">
+                                      Join Call
+                                  </button>
+         
+                            </td>
+                        </tr>
+                    </tbody>                                                                             
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/js/dark-mode.js"></script>
+    <script src="/js/profile-dropdown.js"></script>
+    <script>
+        function joinCall(button) {
+            const committeeId = button.getAttribute('data-committee');
+            alert(`Redirecting to call with recruiter ID: ${committeeId}`);
+            window.location.href = `/call/${committeeId}`;
+        }
+        
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('/api/interviews', { method: 'GET', credentials: 'include' })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Fetched Data:', data); 
+        
+                    const tableBody = document.getElementById('interview-table-body');
+                    const upcomingCountElement = document.getElementById('upcoming-interviews-count');
+                    const completedCountElement = document.getElementById('completed-interviews-count');
+        
+                    let upcomingCount = 0;
+                    let completedCount = 0;
+        
+                    tableBody.innerHTML = '';
+        
+                    data.forEach(interview => {
+                        console.log('Processing interview:', interview); 
+        
+                        if (interview.status && interview.status.toLowerCase() === 'scheduled') {
+                            upcomingCount++;
+                        } else if (interview.status && interview.status.toLowerCase() === 'completed') {
+                            completedCount++;
+                        }
+        
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${interview.position || 'N/A'}</td>
+                            <td>${new Date(interview.date).toLocaleDateString() || 'N/A'}</td>
+                            <td>${interview.time || 'N/A'}</td>
+                            <td>
+                                ${
+                                    interview.status && interview.status.toLowerCase() === 'pending'
+                                        ? `<button class="join-call-btn" data-id="${interview.id}">Join Call</button>`
+                                        : interview.status
+                                }
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+        
+                    console.log('Upcoming Count:', upcomingCount); 
+                    console.log('Completed Count:', completedCount); 
+                    upcomingCountElement.textContent = upcomingCount;
+                    completedCountElement.textContent = completedCount;
+                })
+                .catch(error => {
+                    console.error('Error fetching interview data:', error);
+                });
+        });
+               
+    </script>
+</body>
+</html>

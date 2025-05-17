@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <!-- Updated CSS path -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- Font Awesome CDN for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="signup-body">
+    <div class="signup-container">
+        <div class="logo-container">
+            <!-- Updated image path -->
+            <img src="/images/logo.png" alt="Logo" class="logo">
+        </div>
+        <h2>Create an Account</h2>
+        <form id="signup-form" class="signup-form" action="/signup" method="POST" novalidate>
+            <div class="input-container">
+                <input type="text" name="firstName" placeholder="First Name" required>
+            </div>
+            <div class="input-container">
+                <input type="text" name="lastName" placeholder="Last Name" required>
+            </div>
+            <div class="input-container">
+                <input type="email" name="email" id="email" placeholder="Email Address" required>
+                <small id="email-error" class="error-message"></small>
+            </div>
+            <div class="input-container">
+                <input type="password" name="password" id="password" placeholder="Password" required>
+                <small id="password-error" class="error-message"></small>
+            </div>
+            <div class="input-container">
+                <input type="password" name="confirmPassword" id="confirm-password" placeholder="Confirm Password" required>
+                <small id="confirm-password-error" class="error-message"></small>
+            </div>
+            <button type="submit" class="signup-btn2">Sign Up</button>
+        </form>        
+        <div class="separator">
+            <span>OR</span>
+        </div>
+        <div class="social-buttons">
+            <button class="social-btn google-btn">
+                <i class="fab fa-google"></i> Continue with Google
+            </button>
+            <button class="social-btn linkedin-btn">
+                <i class="fab fa-linkedin"></i> Continue with LinkedIn
+            </button>
+        </div>
+        <div class="already-account">
+            <p>Already have an account? <a href="/login">Log In</a></p>
+        </div>
+    </div>
+    <!-- Updated JavaScript path -->
+    <script src="/js/validation.js"></script>
+    <script>
+        // Confirm Password Validation
+        document.getElementById('signup-form').addEventListener('submit', function (e) {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const confirmPasswordError = document.getElementById('confirm-password-error');
+
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                confirmPasswordError.textContent = "Passwords do not match!";
+            } else {
+                confirmPasswordError.textContent = "";
+            }
+        });
+    </script>
+</body>
+</html>
